@@ -10,7 +10,6 @@ const MapView = () => {
   const [map, setMap] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
 
-  // Dapatkan lokasi user via GPS (Geolocation API)
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -20,7 +19,7 @@ const MapView = () => {
         },
         (err) => {
           console.error("Gagal dapat posisi user:", err);
-          setUserLocation(null); // jangan set default, biarkan null
+          setUserLocation(null);
         },
         { enableHighAccuracy: true }
       );
@@ -30,7 +29,6 @@ const MapView = () => {
     }
   }, []);
 
-  // Inisialisasi peta setelah lokasi user tersedia
   useEffect(() => {
     if (!userLocation) return;
 
@@ -43,13 +41,11 @@ const MapView = () => {
 
     mapInstance.addControl(new tt.NavigationControl());
 
-    // Marker posisi user dengan warna biru dan popup
     const userMarker = new tt.Marker({ color: "blue" })
       .setLngLat(userLocation)
       .setPopup(new tt.Popup({ offset: 30 }).setText("Lokasi Kamu"))
       .addTo(mapInstance);
 
-    // Marker semua ATM dengan popup nama ATM
     atmList.forEach((atm) => {
       new tt.Marker({ color: "red" })
         .setLngLat(atm.coords)
@@ -64,7 +60,6 @@ const MapView = () => {
     };
   }, [userLocation]);
 
-  // Hitung rute terbaik dan gambar garis rute
   useEffect(() => {
     if (!map || !userLocation) return;
 
@@ -90,7 +85,7 @@ const MapView = () => {
           }
         }
 
-        if (bestIndex === -1) break; // Kalau error semua, keluar
+        if (bestIndex === -1) break;
 
         const nextATM = remaining.splice(bestIndex, 1)[0];
         route.push(nextATM);
@@ -99,7 +94,6 @@ const MapView = () => {
 
       setRouteOrder(route);
 
-      // Gambar garis rute
       const coords = [userLocation, ...route.map((atm) => atm.coords)];
 
       const geojson = {
@@ -110,7 +104,6 @@ const MapView = () => {
         },
       };
 
-      // Bersihkan layer dan source lama jika ada
       if (map.getLayer("route-line")) map.removeLayer("route-line");
       if (map.getSource("route-line")) map.removeSource("route-line");
 
@@ -127,7 +120,6 @@ const MapView = () => {
         },
       });
 
-      // Supaya peta zoom dan center pas ke seluruh rute
       const bounds = coords.reduce((b, coord) => {
         return b.extend(coord);
       }, new tt.LngLatBounds(coords[0], coords[0]));
@@ -139,43 +131,13 @@ const MapView = () => {
   }, [map, userLocation]);
 
   return (
-    <div
-      style={{
-        display: "flex",
-        height: "100vh",
-        width: "100vw",
-        maxWidth: "1200px",
-        margin: "1rem auto",
-        boxShadow: "0 0 10px rgba(0,0,0,0.15)",
-        borderRadius: "8px",
-        overflow: "hidden",
-        backgroundColor: "#fff",
-        fontFamily: "Arial, sans-serif",
-      }}
-    >
-      <div
-        ref={mapRef}
-        style={{
-          width: "70%",
-          minWidth: "400px",
-          height: "100%",
-        }}
-      />
-      <div
-        style={{
-          width: "30%",
-          padding: "1rem",
-          overflowY: "auto",
-          backgroundColor: "#f9f9f9",
-          borderLeft: "1px solid #ddd",
-        }}
-      >
-        <h3 style={{ marginTop: 0, textAlign: "center" }}>
-          🧭 Urutan Kunjungan ATM
-        </h3>
+    <div className="mapview-container">
+      <div ref={mapRef} className="map-container" />
+      <div className="route-list-container">
+        <h3>🧭 Urutan Kunjungan ATM</h3>
         <ol>
           {routeOrder.map((atm, index) => (
-            <li key={atm.id} style={{ marginBottom: "1rem" }}>
+            <li key={atm.id}>
               <strong>
                 {index + 1}. {atm.name}
               </strong>
