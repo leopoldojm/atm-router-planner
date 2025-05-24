@@ -17,22 +17,14 @@ if (!TOMTOM_API_KEY) {
 export const getTravelTimeInSeconds = async (start, end) => {
   if (!TOMTOM_API_KEY) throw new Error("TOMTOM_API_KEY is not defined");
 
-  const startLat = start[1];
-  const startLng = start[0];
-  const endLat = end[1];
-  const endLng = end[0];
+  const [startLng, startLat] = start;
+  const [endLng, endLat] = end;
 
-  // traffic=true harus jadi query param, bukan di axios params object
-  const url = `https://api.tomtom.com/routing/1/calculateRoute/${startLat},${startLng}:${endLat},${endLng}/json`;
+  const url = `https://api.tomtom.com/routing/1/calculateRoute/${startLat},${startLng}:${endLat},${endLng}/json?key=${TOMTOM_API_KEY}&travelMode=car&traffic=true`;
+  console.log(url);
 
   try {
-    const response = await axios.get(url, {
-      params: {
-        key: TOMTOM_API_KEY,
-        travelMode: "car",
-        traffic: "true", // string "true" lebih aman
-      },
-    });
+    const response = await axios.get(url);
 
     const data = response.data;
     if (data.routes && data.routes.length > 0) {
