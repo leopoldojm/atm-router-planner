@@ -1,0 +1,190 @@
+import React, { useEffect, useRef, useState } from "react";
+import tt from "@tomtom-international/web-sdk-maps";
+import "@tomtom-international/web-sdk-maps/dist/maps.css";
+import atmList from "../data/atmList";
+import { getTravelTimeInSeconds } from "../services/tomtomApi";
+
+const MapView = () => {
+  const mapRef = useRef(null);
+  const [routeOrder, setRouteOrder] = useState([]);
+  const [map, setMap] = useState(null);
+  const [userLocation, setUserLocation] = useState(null);
+
+  // Dapatkan lokasi user via GPS (Geolocation API)
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const coords = [pos.coords.longitude, pos.coords.latitude];
+          setUserLocation(coords);
+        },
+        (err) => {
+          console.error("Gagal dapat posisi user:", err);
+          setUserLocation(null); // jangan set default, biarkan null
+        },
+        { enableHighAccuracy: true }
+      );
+    } else {
+      console.error("Browser tidak support geolocation");
+      setUserLocation(null);
+    }
+  }, []);
+
+  // Inisialisasi peta setelah lokasi user tersedia
+  useEffect(() => {
+    if (!userLocation) return;
+
+    const mapInstance = tt.map({
+      key: process.env.REACT_APP_TOMTOM_API_KEY,
+      container: mapRef.current,
+      center: userLocation,
+      zoom: 13,
+    });
+
+    mapInstance.addControl(new tt.NavigationControl());
+
+    // Marker posisi user dengan warna biru dan popup
+    const userMarker = new tt.Marker({ color: "blue" })
+      .setLngLat(userLocation)
+      .setPopup(new tt.Popup({ offset: 30 }).setText("Lokasi Kamu"))
+      .addTo(mapInstance);
+
+    // Marker semua ATM dengan popup nama ATM
+    atmList.forEach((atm) => {
+      new tt.Marker({ color: "red" })
+        .setLngLat(atm.coords)
+        .setPopup(new tt.Popup({ offset: 30 }).setText(atm.name))
+        .addTo(mapInstance);
+    });
+
+    setMap(mapInstance);
+
+    return () => {
+      mapInstance.remove();
+    };
+  }, [userLocation]);
+
+  // Hitung rute terbaik dan gambar garis rute
+  useEffect(() => {
+    if (!map || !userLocation) return;
+
+    const calculateBestRoute = async () => {
+      const remaining = [...atmList];
+      const route = [];
+      let current = userLocation;
+
+      while (remaining.length > 0) {
+        let bestTime = Infinity;
+        let bestIndex = -1;
+
+        for (let i = 0; i < remaining.length; i++) {
+          const atm = remaining[i];
+          try {
+            const time = await getTravelTimeInSeconds(current, atm.coords);
+            if (time < bestTime) {
+              bestTime = time;
+              bestIndex = i;
+            }
+          } catch (err) {
+            console.error("Gagal mengambil waktu tempuh:", err);
+          }
+        }
+
+        if (bestIndex === -1) break; // Kalau error semua, keluar
+
+        const nextATM = remaining.splice(bestIndex, 1)[0];
+        route.push(nextATM);
+        current = nextATM.coords;
+      }
+
+      setRouteOrder(route);
+
+      // Gambar garis rute
+      const coords = [userLocation, ...route.map((atm) => atm.coords)];
+
+      const geojson = {
+        type: "Feature",
+        geometry: {
+          type: "LineString",
+          coordinates: coords,
+        },
+      };
+
+      // Bersihkan layer dan source lama jika ada
+      if (map.getLayer("route-line")) map.removeLayer("route-line");
+      if (map.getSource("route-line")) map.removeSource("route-line");
+
+      map.addLayer({
+        id: "route-line",
+        type: "line",
+        source: {
+          type: "geojson",
+          data: geojson,
+        },
+        paint: {
+          "line-color": "#ff5500",
+          "line-width": 4,
+        },
+      });
+
+      // Supaya peta zoom dan center pas ke seluruh rute
+      const bounds = coords.reduce((b, coord) => {
+        return b.extend(coord);
+      }, new tt.LngLatBounds(coords[0], coords[0]));
+
+      map.fitBounds(bounds, { padding: 50 });
+    };
+
+    calculateBestRoute();
+  }, [map, userLocation]);
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        height: "100vh",
+        width: "100vw",
+        maxWidth: "1200px",
+        margin: "1rem auto",
+        boxShadow: "0 0 10px rgba(0,0,0,0.15)",
+        borderRadius: "8px",
+        overflow: "hidden",
+        backgroundColor: "#fff",
+        fontFamily: "Arial, sans-serif",
+      }}
+    >
+      <div
+        ref={mapRef}
+        style={{
+          width: "70%",
+          minWidth: "400px",
+          height: "100%",
+        }}
+      />
+      <div
+        style={{
+          width: "30%",
+          padding: "1rem",
+          overflowY: "auto",
+          backgroundColor: "#f9f9f9",
+          borderLeft: "1px solid #ddd",
+        }}
+      >
+        <h3 style={{ marginTop: 0, textAlign: "center" }}>
+          🧭 Urutan Kunjungan ATM
+        </h3>
+        <ol>
+          {routeOrder.map((atm, index) => (
+            <li key={atm.id} style={{ marginBottom: "1rem" }}>
+              <strong>
+                {index + 1}. {atm.name}
+              </strong>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
+  );
+};
+
+export default MapView;
