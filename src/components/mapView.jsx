@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import "@tomtom-international/web-sdk-maps/dist/maps.css";
 
-import AtmUploader from "../components/AtmUploader"; // pastikan path-nya sesuai
+import AtmUploader from "../components/AtmUploader";
 import { getTravelTimeInSeconds } from "../services/tomtomApi";
 import { initializeMap, addMarkersToMap } from "../utils/mapUtils";
 import { buildTimeMatrixAsync } from "../utils/timeMatrixUtils";
@@ -21,11 +21,14 @@ const MapView = () => {
   const [routeOrder, setRouteOrder] = useState([]);
   const [atmListState, setAtmListState] = useState([]);
 
-  // Ambil lokasi user
+  const isFetchingRouteRef = useRef(false);
+
+  // Ambil lokasi user sekali saat komponen mount
   useEffect(() => {
     if (!navigator.geolocation) {
       console.error("Browser tidak support geolocation");
-      return setUserLocation(null);
+      setUserLocation(null);
+      return;
     }
 
     navigator.geolocation.getCurrentPosition(
@@ -38,7 +41,7 @@ const MapView = () => {
     );
   }, []);
 
-  // Inisialisasi peta dan marker user + ATM
+  // Inisialisasi peta dan tambahkan marker
   useEffect(() => {
     if (!userLocation || atmListState.length === 0) return;
 
@@ -47,14 +50,15 @@ const MapView = () => {
     setMap(mapInstance);
 
     return () => {
-      mapInstance.remove();
+      if (mapInstance) {
+        mapInstance.remove();
+      }
     };
   }, [userLocation, atmListState]);
 
-  // Build matrix waktu travel secara async dan paralel
+  // Build matrix waktu travel async
   useEffect(() => {
     if (!userLocation || atmListState.length === 0) return;
-    console.log("Inisialisasi peta dengan ATM:", atmListState);
 
     const buildMatrix = async () => {
       setLoadingRoute(true);
@@ -68,6 +72,8 @@ const MapView = () => {
         setTimeMatrix(matrix);
       } catch (error) {
         console.error("Error build time matrix:", error);
+        setUserToATMTime(null);
+        setTimeMatrix(null);
       } finally {
         setLoadingRoute(false);
       }
@@ -76,31 +82,42 @@ const MapView = () => {
     buildMatrix();
   }, [userLocation, atmListState]);
 
-  // Gambar rute setelah data siap
+  // Gambar rute ketika data siap
   useEffect(() => {
     if (
       !map ||
       !userLocation ||
       !timeMatrix ||
       !userToATMTime ||
-      atmListState.length === 0
+      atmListState.length === 0 ||
+      isFetchingRouteRef.current
     )
       return;
 
     const draw = async () => {
+      isFetchingRouteRef.current = true;
       setLoadingRoute(true);
-      const route = aStarRoute(
-        atmListState,
-        timeMatrix,
-        userToATMTime,
-        alpha,
-        beta
-      );
-      setRouteOrder(route);
-      if (route.length > 0) {
-        await drawRoute(map, userLocation, route);
+
+      try {
+        const route = aStarRoute(
+          atmListState,
+          timeMatrix,
+          userToATMTime,
+          alpha,
+          beta
+        );
+
+        setRouteOrder(route);
+
+        if (route.length > 0) {
+          await drawRoute(map, userLocation, route);
+        }
+      } catch (err) {
+        console.error("Gagal menggambar rute:", err);
+      } finally {
+        isFetchingRouteRef.current = false;
+        setLoadingRoute(false);
       }
-      setLoadingRoute(false);
     };
 
     draw();
@@ -114,8 +131,36 @@ const MapView = () => {
       <div
         ref={mapRef}
         className="map-container"
-        style={{ width: "70%", height: "100%" }}
-      />
+        style={{ width: "70%", height: "100%", position: "relative" }}
+      >
+        {loadingRoute && (
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              backgroundColor: "rgba(255,255,255,0.7)",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              zIndex: 10,
+            }}
+          >
+            <div
+              style={{
+                border: "6px solid #f3f3f3",
+                borderTop: "6px solid #3498db",
+                borderRadius: "50%",
+                width: "50px",
+                height: "50px",
+                animation: "spin 1s linear infinite",
+              }}
+            />
+          </div>
+        )}
+      </div>
       <div
         className="route-list-container"
         style={{
@@ -127,8 +172,10 @@ const MapView = () => {
       >
         <AtmUploader
           onDataUpload={(data) => {
-            console.log("Data ATM dari file:", data);
             setAtmListState(data);
+            setRouteOrder([]); // reset rute tiap upload baru
+            setTimeMatrix(null);
+            setUserToATMTime(null);
           }}
         />
         <h3>Urutan Kunjungan ATM</h3>
@@ -140,13 +187,20 @@ const MapView = () => {
           <ol>
             {routeOrder.map((atm, index) => (
               <li key={index}>
-                <strong>{atm.name}</strong> — Sisa uang: Rp
+                <strong>{atm.name}</strong>Sisa uang: Rp
                 {(atm.remainingMoney || 0).toLocaleString()}
               </li>
             ))}
           </ol>
         )}
       </div>
+
+      <style>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg);}
+          100% { transform: rotate(360deg);}
+        }
+      `}</style>
     </div>
   );
 };
