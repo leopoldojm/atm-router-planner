@@ -54,6 +54,7 @@ const MapView = () => {
   // Build matrix waktu travel secara async dan paralel
   useEffect(() => {
     if (!userLocation || atmListState.length === 0) return;
+    console.log("Inisialisasi peta dengan ATM:", atmListState);
 
     const buildMatrix = async () => {
       setLoadingRoute(true);
@@ -124,7 +125,12 @@ const MapView = () => {
           overflowY: "auto",
         }}
       >
-        <AtmUploader onDataUpload={setAtmListState} />
+        <AtmUploader
+          onDataUpload={(data) => {
+            console.log("Data ATM dari file:", data);
+            setAtmListState(data);
+          }}
+        />
         <h3>Urutan Kunjungan ATM</h3>
         {loadingRoute ? (
           <p>Loading rute...</p>

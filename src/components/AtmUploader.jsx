@@ -1,23 +1,39 @@
-import React, { useRef } from "react";
-import "../styles/main.css"; // CSS terpisah
+import React, { useRef, useState } from "react";
+import "../styles/main.css";
+import { parseAtmFile } from "../utils/fileParser";
 
 const AtmUploader = ({ onDataUpload }) => {
   const fileInputRef = useRef();
+  const [loading, setLoading] = useState(false);
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const data = JSON.parse(event.target.result);
-        onDataUpload(data);
-      } catch (error) {
-        alert("Format file tidak valid. Pastikan file JSON.");
-      }
-    };
-    reader.readAsText(file);
+    // Validasi ekstensi file agar aman
+    const validExtensions = ["csv", "xlsx", "xls"];
+    const fileExtension = file.name.split(".").pop().toLowerCase();
+    if (!validExtensions.includes(fileExtension)) {
+      alert("File tidak didukung. Harap upload file CSV atau Excel.");
+      e.target.value = null; // reset input supaya bisa pilih ulang file
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const data = await parseAtmFile(file);
+      console.log("Parsed data:", data); // Debug info
+      onDataUpload(data);
+    } catch (error) {
+      alert(
+        "Format file tidak valid atau terjadi kesalahan saat parsing.\n" +
+          "Pastikan file dalam format CSV, XLSX, atau XLS yang benar."
+      );
+      console.error(error);
+    } finally {
+      e.target.value = null; // reset input supaya bisa upload file sama lagi
+      setLoading(false);
+    }
   };
 
   const handleClick = () => {
@@ -26,12 +42,18 @@ const AtmUploader = ({ onDataUpload }) => {
 
   return (
     <div className="upload-container">
-      <button className="custom-upload-button" onClick={handleClick}>
-        📂 Upload ATM JSON
+      <button
+        className="custom-upload-button"
+        onClick={handleClick}
+        disabled={loading}
+      >
+        {loading
+          ? "Memproses file..."
+          : "📂 Upload ATM Data (CSV / XLSX / XLS)"}
       </button>
       <input
         type="file"
-        accept=".json"
+        accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
         ref={fileInputRef}
         style={{ display: "none" }}
         onChange={handleFileChange}
