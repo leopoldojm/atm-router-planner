@@ -19,14 +19,27 @@ export const getTrafficFlow = async (lat, lon) => {
     return null;
   }
 };
-export const getTravelTimeInSeconds = async (origin, destination) => {
+export const getTravelTimeInSeconds = async (start, end) => {
   const key = process.env.REACT_APP_TOMTOM_API_KEY;
-  const url = `https://api.tomtom.com/routing/1/calculateRoute/${origin[0]},${origin[1]}:${destination[0]},${destination[1]}/json?key=${key}&traffic=true`;
 
-  const res = await fetch(url);
-  const data = await res.json();
+  // Tukar posisi koordinat dari [lng, lat] ke [lat, lng]
+  const startLat = start[1];
+  const startLng = start[0];
+  const endLat = end[1];
+  const endLng = end[0];
 
-  if (!data.routes || !data.routes.length) throw new Error("No route found");
+  const url = `https://api.tomtom.com/routing/1/calculateRoute/${startLat},${startLng}:${endLat},${endLng}/json?key=${key}&traffic=true`;
 
-  return data.routes[0].summary.travelTimeInSeconds;
+  try {
+    const response = await axios.get(url);
+    const data = response.data;
+
+    if (data.routes && data.routes.length > 0) {
+      return data.routes[0].summary.travelTimeInSeconds;
+    } else {
+      throw new Error("No route found");
+    }
+  } catch (err) {
+    throw err;
+  }
 };

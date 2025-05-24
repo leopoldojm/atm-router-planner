@@ -9,7 +9,9 @@ const MapView = () => {
   const [routeOrder, setRouteOrder] = useState([]);
   const [map, setMap] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
+  const [loadingRoute, setLoadingRoute] = useState(false);
 
+  // Ambil lokasi pengguna
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -29,6 +31,7 @@ const MapView = () => {
     }
   }, []);
 
+  // Inisialisasi peta
   useEffect(() => {
     if (!userLocation) return;
 
@@ -41,15 +44,23 @@ const MapView = () => {
 
     mapInstance.addControl(new tt.NavigationControl());
 
-    const userMarker = new tt.Marker({ color: "blue" })
+    // Marker user
+    new tt.Marker({ color: "blue" })
       .setLngLat(userLocation)
       .setPopup(new tt.Popup({ offset: 30 }).setText("Lokasi Kamu"))
       .addTo(mapInstance);
 
+    // Marker ATM
     atmList.forEach((atm) => {
       new tt.Marker({ color: "red" })
         .setLngLat(atm.coords)
-        .setPopup(new tt.Popup({ offset: 30 }).setText(atm.name))
+        .setPopup(
+          new tt.Popup({ offset: 30 }).setHTML(
+            `<strong>${atm.name}</strong><br/>Sisa uang: Rp${(
+              atm.remainingMoney || 0
+            ).toLocaleString()}`
+          )
+        )
         .addTo(mapInstance);
     });
 
@@ -60,10 +71,13 @@ const MapView = () => {
     };
   }, [userLocation]);
 
+  // Hitung rute terbaik berdasarkan waktu tempuh
   useEffect(() => {
     if (!map || !userLocation) return;
 
     const calculateBestRoute = async () => {
+      setLoadingRoute(true);
+
       const remaining = [...atmList];
       const route = [];
       let current = userLocation;
@@ -104,8 +118,11 @@ const MapView = () => {
         },
       };
 
-      if (map.getLayer("route-line")) map.removeLayer("route-line");
-      if (map.getSource("route-line")) map.removeSource("route-line");
+      // Remove previous route if exists
+      if (map.getLayer && map.getLayer("route-line"))
+        map.removeLayer("route-line");
+      if (map.getSource && map.getSource("route-line"))
+        map.removeSource("route-line");
 
       map.addLayer({
         id: "route-line",
@@ -120,30 +137,54 @@ const MapView = () => {
         },
       });
 
+      // Zoom ke semua titik
       const bounds = coords.reduce((b, coord) => {
         return b.extend(coord);
       }, new tt.LngLatBounds(coords[0], coords[0]));
 
       map.fitBounds(bounds, { padding: 50 });
+
+      setLoadingRoute(false);
     };
 
     calculateBestRoute();
   }, [map, userLocation]);
 
   return (
-    <div className="mapview-container">
-      <div ref={mapRef} className="map-container" />
-      <div className="route-list-container">
+    <div
+      className="mapview-container"
+      style={{ display: "flex", height: "100vh" }}
+    >
+      <div
+        ref={mapRef}
+        className="map-container"
+        style={{ width: "70%", height: "100%" }}
+      />
+      <div
+        className="route-list-container"
+        style={{
+          width: "30%",
+          padding: "1rem",
+          backgroundColor: "#f8f8f8",
+          overflowY: "auto",
+        }}
+      >
         <h3>🧭 Urutan Kunjungan ATM</h3>
-        <ol>
-          {routeOrder.map((atm, index) => (
-            <li key={atm.id}>
-              <strong>
-                {index + 1}. {atm.name}
-              </strong>
-            </li>
-          ))}
-        </ol>
+        {loadingRoute ? (
+          <p>Loading rute...</p>
+        ) : (
+          <ol>
+            {routeOrder.map((atm, index) => (
+              <li key={atm.id} style={{ marginBottom: "1rem" }}>
+                <strong>
+                  {index + 1}. {atm.name}
+                </strong>
+                <br />
+                Sisa uang: Rp{(atm.remainingMoney || 0).toLocaleString()}
+              </li>
+            ))}
+          </ol>
+        )}
       </div>
     </div>
   );
