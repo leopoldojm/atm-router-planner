@@ -13,7 +13,7 @@ const beta = 0.3; // bobot sisa uang ATM
 
 const MapView = () => {
   const mapRef = useRef(null);
-  const [map, setMap] = useState(null);
+  const mapInstanceRef = useRef(null); // ref untuk menyimpan map instance
   const [userLocation, setUserLocation] = useState(null);
   const [loadingRoute, setLoadingRoute] = useState(false);
   const [timeMatrix, setTimeMatrix] = useState(null);
@@ -21,37 +21,34 @@ const MapView = () => {
   const [routeOrder, setRouteOrder] = useState([]);
   const [atmListState, setAtmListState] = useState([]);
 
-  // ** Pisahkan marker user dan marker ATM **
+  // Marker refs untuk user dan ATM agar bisa update tanpa rerender
   const userMarkerRef = useRef(null);
   const atmMarkersRef = useRef([]);
 
+  // Ref flag untuk mencegah multiple route drawing bersamaan
   const isFetchingRouteRef = useRef(false);
 
-  // Ambil lokasi user sekali saat komponen mount
+  // Set lokasi user sekali saat komponen mount (hardcoded)
   useEffect(() => {
-    if (!navigator.geolocation) {
-      console.error("Browser tidak support geolocation");
-      setUserLocation(null);
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (pos) => setUserLocation([pos.coords.longitude, pos.coords.latitude]),
-      (err) => {
-        console.error("Gagal dapat posisi user:", err);
-        setUserLocation(null);
-      },
-      { enableHighAccuracy: true }
-    );
+    setUserLocation([106.966592, -6.257289]);
   }, []);
 
-  // Inisialisasi peta dan tambahkan marker (user + ATM)
+  // Inisialisasi peta dan marker user + ATM
   useEffect(() => {
-    if (!userLocation || atmListState.length === 0) return;
+    if (!userLocation || mapInstanceRef.current) return;
+
+    // Jika map sudah ada, hapus dulu
+    if (mapInstanceRef.current) {
+      try {
+        mapInstanceRef.current.remove();
+      } catch {
+        // ignore error jika sudah di-remove
+      }
+      mapInstanceRef.current = null;
+    }
 
     const mapInstance = initializeMap(mapRef.current, userLocation);
 
-    // Gunakan versi addMarkersToMap yang return { userMarker, atmMarkers }
     const { userMarker, atmMarkers } = addMarkersToMap(
       mapInstance,
       userLocation,
@@ -63,18 +60,23 @@ const MapView = () => {
     userMarkerRef.current = userMarker;
     atmMarkersRef.current = atmMarkers;
 
-    setMap(mapInstance);
+    mapInstanceRef.current = mapInstance;
 
     return () => {
-      if (mapInstance) {
-        mapInstance.remove();
+      if (mapInstanceRef.current) {
+        try {
+          mapInstanceRef.current.remove();
+        } catch {
+          // ignore jika sudah di-remove
+        }
+        mapInstanceRef.current = null;
       }
       userMarkerRef.current = null;
       atmMarkersRef.current = [];
     };
   }, [userLocation, atmListState]);
 
-  // Build matrix waktu travel async
+  // Bangun matriks waktu perjalanan secara async
   useEffect(() => {
     if (!userLocation || atmListState.length === 0) return;
 
@@ -100,10 +102,10 @@ const MapView = () => {
     buildMatrix();
   }, [userLocation, atmListState]);
 
-  // Gambar rute ketika data siap
+  // Gambar rute setelah data siap
   useEffect(() => {
     if (
-      !map ||
+      !mapInstanceRef.current ||
       !userLocation ||
       !timeMatrix ||
       !userToATMTime ||
@@ -128,7 +130,7 @@ const MapView = () => {
         setRouteOrder(route);
 
         if (route.length > 0) {
-          await drawRoute(map, userLocation, route);
+          await drawRoute(mapInstanceRef.current, userLocation, route);
         }
       } catch (err) {
         console.error("Gagal menggambar rute:", err);
@@ -139,20 +141,18 @@ const MapView = () => {
     };
 
     draw();
-  }, [map, userLocation, timeMatrix, userToATMTime, atmListState]);
+  }, [userLocation, timeMatrix, userToATMTime, atmListState]);
 
+  // Fungsi zoom ke marker ATM saat list diklik
   const handleAtmClick = (routeIndex) => {
-    if (!map) return;
+    if (!mapInstanceRef.current) return;
 
-    // ATM yang dipilih berdasarkan urutan routeOrder
     const atmSelected = routeOrder[routeIndex];
     if (!atmSelected) return;
 
-    // Cari index asli dari ATM tersebut di atmListState
     const originalIndex = atmListState.findIndex(
-      (atm) => atm.id === atmSelected.id // pastikan id unik
+      (atm) => atm.id === atmSelected.id
     );
-
     if (originalIndex === -1) return;
 
     const marker = atmMarkersRef.current[originalIndex];
@@ -160,11 +160,12 @@ const MapView = () => {
 
     const lngLat = marker.getLngLat();
 
-    map.flyTo({
+    mapInstanceRef.current.flyTo({
       center: lngLat,
       zoom: 15,
       essential: true,
     });
+
     marker.togglePopup();
   };
 
@@ -196,7 +197,7 @@ const MapView = () => {
             <div
               style={{
                 border: "6px solid #f3f3f3",
-                borderTop: "6px solid #3498db",
+                borderTop: "6px solid #003d79",
                 borderRadius: "50%",
                 width: "50px",
                 height: "50px",
@@ -206,6 +207,7 @@ const MapView = () => {
           </div>
         )}
       </div>
+
       <div
         className="route-list-container"
         style={{
@@ -218,7 +220,7 @@ const MapView = () => {
         <AtmUploader
           onDataUpload={(data) => {
             setAtmListState(data);
-            setRouteOrder([]); // reset rute tiap upload baru
+            setRouteOrder([]);
             setTimeMatrix(null);
             setUserToATMTime(null);
           }}
@@ -230,16 +232,49 @@ const MapView = () => {
           <p>Tidak ada rute ditemukan.</p>
         ) : (
           <ol>
-            {routeOrder.map((atm, routeIndex) => (
-              <li
-                key={routeIndex}
-                style={{ cursor: "pointer" }}
-                onClick={() => handleAtmClick(routeIndex)}
-              >
-                <strong>{atm.name}</strong> — Sisa uang: Rp
-                {(atm.remainingMoney || 0).toLocaleString()}
-              </li>
-            ))}
+            {routeOrder.map((atm, routeIndex) => {
+              let travelTimeSec = 0;
+
+              if (routeIndex === 0) {
+                const originalIndex = atmListState.findIndex(
+                  (a) => a.id === atm.id
+                );
+                if (originalIndex !== -1 && userToATMTime) {
+                  travelTimeSec = userToATMTime[originalIndex] || 0;
+                }
+              } else {
+                const prevATM = routeOrder[routeIndex - 1];
+                const fromIndex = atmListState.findIndex(
+                  (a) => a.id === prevATM.id
+                );
+                const toIndex = atmListState.findIndex((a) => a.id === atm.id);
+                if (
+                  fromIndex !== -1 &&
+                  toIndex !== -1 &&
+                  timeMatrix &&
+                  timeMatrix[fromIndex]
+                ) {
+                  travelTimeSec = timeMatrix[fromIndex][toIndex] || 0;
+                }
+              }
+
+              const travelTimeMin = Math.round(travelTimeSec / 60);
+
+              return (
+                <li
+                  key={routeIndex}
+                  style={{ cursor: "pointer", marginBottom: "0.5rem" }}
+                  onClick={() => handleAtmClick(routeIndex)}
+                >
+                  <strong>{atm.name}</strong> — Sisa uang: Rp{" "}
+                  {(atm.remainingMoney || 0).toLocaleString()}
+                  <br />
+                  <span style={{ fontSize: "0.9rem", color: "#555" }}>
+                    Estimasi waktu: {travelTimeMin} menit
+                  </span>
+                </li>
+              );
+            })}
           </ol>
         )}
       </div>

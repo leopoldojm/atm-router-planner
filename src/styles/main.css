@@ -19,13 +19,13 @@ body {
 }
 
 .app-header {
-  background: #2c2c2c;
-  color: #fff;
+  background: #003d79; /* Mandiri Blue */
+  color: #ffb700; /* Mandiri Yellow */
   padding: 1.25rem 2rem;
   font-size: 1.6rem;
   font-weight: 600;
   border-radius: 12px;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 3px 8px rgba(0, 61, 121, 0.7);
   user-select: none;
   display: flex;
   align-items: center;
@@ -33,7 +33,7 @@ body {
   margin-bottom: 1.5rem;
   justify-content: center;
   letter-spacing: 0.05em;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  text-shadow: 0 1px 3px rgba(255, 183, 0, 0.6);
 }
 
 /* Container utama Route List */
@@ -41,9 +41,9 @@ body {
   width: 100%;
   max-width: 400px;
   padding: 1.5rem 2rem;
-  background: #fff;
+  background: #ffffff; /* tetap putih */
   border-radius: 16px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 15px rgba(0, 61, 121, 0.1);
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -58,14 +58,14 @@ body {
 }
 
 .route-list-container::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: #e0e4e8; /* warna abu-abu soft */
   border-radius: 4px;
 }
 
 .route-list-container::-webkit-scrollbar-thumb {
-  background-color: #c1c1c1;
+  background-color: #67b2e8; /* Mandiri Sky Blue */
   border-radius: 4px;
-  border: 2px solid #f1f1f1;
+  border: 2px solid #e0e4e8;
 }
 
 /* Heading judul */
@@ -73,7 +73,7 @@ body {
   font-weight: 700;
   font-size: 1.5rem;
   margin-bottom: 1.5rem;
-  color: #222;
+  color: #003d79; /* Mandiri Blue */
   text-align: center;
   letter-spacing: 0.08em;
   user-select: none;
@@ -91,59 +91,53 @@ body {
 
 /* Item list */
 .route-list-container li {
-  background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #f2f7fc 100%);
   border-radius: 12px;
   padding: 1rem 1.5rem;
-  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 8px rgba(103, 178, 232, 0.15); /* Mandiri Sky Blue soft shadow */
   display: flex;
   align-items: center;
   gap: 1rem;
   cursor: pointer;
-  transition: box-shadow 0.3s ease, transform 0.25s ease;
+  transition: box-shadow 0.3s ease, transform 0.25s ease,
+    background-color 0.3s ease;
   user-select: none;
   position: relative;
 }
 
 /* Hover effect */
 .route-list-container li:hover {
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 6px 20px rgba(103, 178, 232, 0.4); /* Mandiri Sky Blue */
   transform: translateX(6px);
-  background: linear-gradient(135deg, #fff8e1 0%, #fff3d6 100%);
-  color: #333;
+  background: linear-gradient(
+    135deg,
+    #ffb700 0%,
+    #ea7200 100%
+  ); /* Mandiri Yellow ke Mandiri Orange */
+  color: #003d79; /* Mandiri Blue */
 }
+
 /* Nomor otomatis pada list */
 .route-list-container li::before {
   content: counter(item);
   counter-increment: item;
   font-weight: 700;
-  color: #50a2ff; /* warna teks nomor tetap biru */
-  background: #d0e7ff; /* ganti latar oranye jadi biru muda */
+  color: #003d79; /* Mandiri Blue */
+  background: #ffb700; /* Mandiri Yellow */
   padding: 0.4rem 0.8rem;
   font-size: 1.1rem;
   min-width: 30px;
   text-align: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(234, 114, 0, 0.4); /* Mandiri Orange */
   flex-shrink: 0;
   user-select: none;
   list-style: square;
 }
 
-/* Hover effect */
-.route-list-container li:hover {
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
-  transform: translateX(6px);
-  background: linear-gradient(
-    135deg,
-    #d9e9ff 0%,
-    #c2d9ff 100%
-  ); /* ganti oranye ke gradasi biru */
-  color: #333;
-}
-
 /* Tombol detail di kanan */
 .route-list-container li .btn-detail {
   margin-left: auto;
-  background: #50a2ff; /* biru cerah */
+  background: #003d79; /* Mandiri Blue */
   color: white;
   border: none;
   padding: 0.3rem 0.8rem;
@@ -154,7 +148,7 @@ body {
 }
 
 .route-list-container li .btn-detail:hover {
-  background: #1e90ff; /* biru hover yang lebih gelap */
+  background: #67b2e8; /* Mandiri Sky Blue */
 }
 
 /* Responsivitas untuk mobile agar tidak ancur */
@@ -201,7 +195,7 @@ body {
 }
 
 .custom-upload-button {
-  background-color: #3f51b5;
+  background-color: #003d79; /* Mandiri Blue */
   color: white;
   border: none;
   padding: 10px 16px;
@@ -212,7 +206,7 @@ body {
 }
 
 .custom-upload-button:hover {
-  background-color: #303f9f;
+  background-color: #001f3d; /* dark Mandiri Blue */
 }
 
 .upload-container {
