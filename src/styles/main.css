@@ -1,4 +1,3 @@
-/* Reset some default styles */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -37,114 +36,151 @@ body {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-/* Container utama MapView */
-.mapview-container {
-  display: flex;
-  height: 80vh;
-  background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
-  overflow: hidden;
-  flex-direction: row;
-  transition: all 0.3s ease;
-}
-
-/* Map container */
-.map-container {
-  width: 70%;
-  min-width: 400px;
-  height: 100%;
-  border-right: 1px solid #e0e0e0;
-  border-top-left-radius: 16px;
-  border-bottom-left-radius: 16px;
-  overflow: hidden;
-}
-
-/* Route list container */
+/* Container utama Route List */
 .route-list-container {
-  width: 30%;
+  width: 100%;
+  max-width: 400px;
   padding: 1.5rem 2rem;
-  background: #f4f4f4;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
   overflow-y: auto;
-  box-shadow: inset 2px 0 8px -4px rgba(0, 0, 0, 0.05);
-  border-top-right-radius: 16px;
-  border-bottom-right-radius: 16px;
   display: flex;
   flex-direction: column;
+  scroll-behavior: smooth;
+  transition: background-color 0.3s ease;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
 /* Scrollbar styling */
 .route-list-container::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 .route-list-container::-webkit-scrollbar-track {
-  background: transparent;
+  background: #f1f1f1;
+  border-radius: 4px;
 }
 
 .route-list-container::-webkit-scrollbar-thumb {
-  background-color: #999;
-  border-radius: 8px;
+  background-color: #c1c1c1;
+  border-radius: 4px;
+  border: 2px solid #f1f1f1;
 }
 
-/* Heading */
+/* Heading judul */
 .route-list-container h3 {
-  font-weight: 600;
-  font-size: 1.3rem;
-  margin-bottom: 1rem;
-  color: #333;
+  font-weight: 700;
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  color: #222;
   text-align: center;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
   user-select: none;
+  text-transform: uppercase;
 }
 
-/* ATM list as cards */
+/* List tanpa bullet */
 .route-list-container ol {
-  list-style: none;
+  padding-left: 0;
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  padding-left: 0;
   counter-reset: item;
 }
 
+/* Item list */
 .route-list-container li {
-  background: #ffffff;
-  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
   border-radius: 12px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  font-weight: 500;
-  font-size: 1rem;
-  cursor: default;
-  transition: all 0.2s ease;
-  user-select: none;
+  padding: 1rem 1.5rem;
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.06);
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  border-left: 4px solid #999;
+  gap: 1rem;
+  cursor: pointer;
+  transition: box-shadow 0.3s ease, transform 0.25s ease;
+  user-select: none;
+  position: relative;
 }
 
+/* Hover effect */
 .route-list-container li:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-  transform: translateX(4px);
-  background-color: #fefefe;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  transform: translateX(6px);
+  background: linear-gradient(135deg, #fff8e1 0%, #fff3d6 100%);
+  color: #333;
 }
-
+/* Nomor otomatis pada list */
 .route-list-container li::before {
   content: counter(item);
   counter-increment: item;
-  font-weight: 600;
-  color: #444;
-  background: #e0e0e0;
-  padding: 0.2rem 0.6rem;
-  border-radius: 50%;
-  font-size: 0.85rem;
-  min-width: 26px;
+  font-weight: 700;
+  color: #50a2ff; /* warna teks nomor tetap biru */
+  background: #d0e7ff; /* ganti latar oranye jadi biru muda */
+  padding: 0.4rem 0.8rem;
+  font-size: 1.1rem;
+  min-width: 30px;
   text-align: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+  user-select: none;
+  list-style: square;
 }
 
-/* Responsive untuk mobile */
+/* Hover effect */
+.route-list-container li:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  transform: translateX(6px);
+  background: linear-gradient(
+    135deg,
+    #d9e9ff 0%,
+    #c2d9ff 100%
+  ); /* ganti oranye ke gradasi biru */
+  color: #333;
+}
+
+/* Tombol detail di kanan */
+.route-list-container li .btn-detail {
+  margin-left: auto;
+  background: #50a2ff; /* biru cerah */
+  color: white;
+  border: none;
+  padding: 0.3rem 0.8rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.route-list-container li .btn-detail:hover {
+  background: #1e90ff; /* biru hover yang lebih gelap */
+}
+
+/* Responsivitas untuk mobile agar tidak ancur */
+.mapview-container {
+  display: flex;
+  flex-direction: row;
+  height: 80vh;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.map-container {
+  width: 70% !important;
+  height: 100% !important;
+}
+
+.route-list-container {
+  width: 30% !important;
+  padding: 1rem;
+  background-color: #f8f8f8;
+  overflow-y: auto;
+  max-width: 400px;
+  height: 100% !important;
+}
+
+/* Ubah layout jadi kolom di layar kecil supaya mobile rapi */
 @media (max-width: 768px) {
   .mapview-container {
     flex-direction: column;
@@ -153,24 +189,13 @@ body {
 
   .map-container {
     width: 100% !important;
-    min-width: unset;
-    height: 60vh;
-    border-radius: 16px 16px 0 0;
-    border-right: none;
-    border-bottom: 1px solid #e0e0e0;
+    height: 300px !important;
   }
 
   .route-list-container {
     width: 100% !important;
-    height: 40vh;
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
-    border-bottom-left-radius: 16px;
-    border-bottom-right-radius: 16px;
-    border-left: none;
-    border-top: none;
-    padding: 0.75rem 1rem;
-    overflow-y: auto;
-    box-shadow: inset 0 2px 8px -4px rgba(0, 0, 0, 0.05);
+    max-width: none;
+    height: auto !important;
+    padding: 1rem 1.5rem;
   }
 }

@@ -153,7 +153,7 @@ const MapView = () => {
   return (
     <div
       className="mapview-container"
-      style={{ display: "flex", height: "100vh" }}
+      style={{ display: "flex", height: "80vh" }}
     >
       <div
         ref={mapRef}
@@ -169,16 +169,14 @@ const MapView = () => {
           overflowY: "auto",
         }}
       >
-        <h3>🧭 Urutan Kunjungan ATM</h3>
+        <h3>Urutan Kunjungan ATM</h3>
         {loadingRoute ? (
           <p>Loading rute...</p>
         ) : (
           <ol>
             {routeOrder.map((atm, index) => (
               <li key={atm.id} style={{ marginBottom: "1rem" }}>
-                <strong>
-                  {index + 1}. {atm.name}
-                </strong>
+                <strong>{atm.name}</strong>
                 <br />
                 Sisa uang: Rp{(atm.remainingMoney || 0).toLocaleString()}
               </li>
