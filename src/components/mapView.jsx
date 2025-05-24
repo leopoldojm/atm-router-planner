@@ -82,20 +82,31 @@ const MapView = () => {
       const route = [];
       let current = userLocation;
 
+      const alpha = 0.7; // prioritas travel time
+      const beta = 0.3; // prioritas uang kecil
+
       while (remaining.length > 0) {
-        let bestTime = Infinity;
+        let bestScore = Infinity;
         let bestIndex = -1;
 
         for (let i = 0; i < remaining.length; i++) {
           const atm = remaining[i];
+
           try {
-            const time = await getTravelTimeInSeconds(current, atm.coords);
-            if (time < bestTime) {
-              bestTime = time;
+            const travelTime = await getTravelTimeInSeconds(
+              current,
+              atm.coords
+            );
+            const money = atm.remainingMoney ?? 0;
+
+            const score = alpha * travelTime + beta * money;
+
+            if (score < bestScore) {
+              bestScore = score;
               bestIndex = i;
             }
           } catch (err) {
-            console.error("Gagal mengambil waktu tempuh:", err);
+            console.error("Gagal ambil waktu tempuh:", err);
           }
         }
 
@@ -108,8 +119,8 @@ const MapView = () => {
 
       setRouteOrder(route);
 
+      // Gambar rute seperti sebelumnya
       const coords = [userLocation, ...route.map((atm) => atm.coords)];
-
       const geojson = {
         type: "Feature",
         geometry: {
@@ -118,7 +129,6 @@ const MapView = () => {
         },
       };
 
-      // Remove previous route if exists
       if (map.getLayer && map.getLayer("route-line"))
         map.removeLayer("route-line");
       if (map.getSource && map.getSource("route-line"))
@@ -127,23 +137,19 @@ const MapView = () => {
       map.addLayer({
         id: "route-line",
         type: "line",
-        source: {
-          type: "geojson",
-          data: geojson,
-        },
+        source: { type: "geojson", data: geojson },
         paint: {
           "line-color": "#ff5500",
           "line-width": 4,
         },
       });
 
-      // Zoom ke semua titik
-      const bounds = coords.reduce((b, coord) => {
-        return b.extend(coord);
-      }, new tt.LngLatBounds(coords[0], coords[0]));
+      const bounds = coords.reduce(
+        (b, coord) => b.extend(coord),
+        new tt.LngLatBounds(coords[0], coords[0])
+      );
 
       map.fitBounds(bounds, { padding: 50 });
-
       setLoadingRoute(false);
     };
 
