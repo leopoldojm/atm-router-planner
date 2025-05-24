@@ -1,3 +1,4 @@
+/* Reset dan global */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -12,44 +13,73 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Container utama aplikasi */
 .app-container {
   max-width: 1300px;
   margin: 0 auto;
   padding: 1rem;
 }
 
+/* Header aplikasi */
 .app-header {
   background: #003d79; /* Mandiri Blue */
   color: #ffb700; /* Mandiri Yellow */
-  padding: 1.25rem 2rem;
-  font-size: 1.6rem;
-  font-weight: 600;
-  border-radius: 12px;
-  box-shadow: 0 3px 8px rgba(0, 61, 121, 0.7);
-  user-select: none;
+  padding: 0.5rem 1rem; /* style padding sesuai sebelumnya */
+  width: 100%;
+
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
-  justify-content: center;
-  letter-spacing: 0.05em;
-  text-shadow: 0 1px 3px rgba(255, 183, 0, 0.6);
+  gap: 1rem;
+  /* hilangkan justify-content:center supaya logo mentok kiri */
+  user-select: none;
+  border-radius: 12px;
+  box-shadow: 0 3px 8px rgba(0, 61, 121, 0.7);
 }
 
-/* Container utama Route List */
-.route-list-container {
+/* Logo Mandiri */
+.logo-mandiri {
+  width: 150px;
+  height: 64px;
+  object-fit: contain;
+  margin-left: 0; /* supaya logo mentok kiri */
+}
+
+/* Judul header */
+.header-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+/* Kontainer utama map dan daftar rute */
+.mapview-container {
+  display: flex;
+  flex-direction: row;
+  height: 80vh;
   width: 100%;
+  box-sizing: border-box;
+}
+
+/* Bagian peta */
+.map-container {
+  width: 70% !important;
+  height: 100% !important;
+}
+
+/* Sidebar daftar rute */
+.route-list-container {
+  width: 30% !important;
+  padding: 1rem;
+  background-color: #f8f8f8;
+  overflow-y: auto;
   max-width: 400px;
-  padding: 1.5rem 2rem;
-  background: #ffffff; /* tetap putih */
+  height: 100% !important;
   border-radius: 16px;
   box-shadow: 0 4px 15px rgba(0, 61, 121, 0.1);
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
   scroll-behavior: smooth;
   transition: background-color 0.3s ease;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Scrollbar styling */
@@ -58,29 +88,29 @@ body {
 }
 
 .route-list-container::-webkit-scrollbar-track {
-  background: #e0e4e8; /* warna abu-abu soft */
+  background: #e0e4e8;
   border-radius: 4px;
 }
 
 .route-list-container::-webkit-scrollbar-thumb {
-  background-color: #67b2e8; /* Mandiri Sky Blue */
+  background-color: #67b2e8;
   border-radius: 4px;
   border: 2px solid #e0e4e8;
 }
 
-/* Heading judul */
+/* Judul sidebar */
 .route-list-container h3 {
   font-weight: 700;
   font-size: 1.5rem;
   margin-bottom: 1.5rem;
-  color: #003d79; /* Mandiri Blue */
+  color: #003d79;
   text-align: center;
   letter-spacing: 0.08em;
   user-select: none;
   text-transform: uppercase;
 }
 
-/* List tanpa bullet */
+/* List nomor tanpa bullet */
 .route-list-container ol {
   padding-left: 0;
   display: flex;
@@ -94,7 +124,7 @@ body {
   background: linear-gradient(135deg, #ffffff 0%, #f2f7fc 100%);
   border-radius: 12px;
   padding: 1rem 1.5rem;
-  box-shadow: 0 1px 8px rgba(103, 178, 232, 0.15); /* Mandiri Sky Blue soft shadow */
+  box-shadow: 0 1px 8px rgba(103, 178, 232, 0.15);
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -105,39 +135,35 @@ body {
   position: relative;
 }
 
-/* Hover effect */
+/* Hover item list */
 .route-list-container li:hover {
-  box-shadow: 0 6px 20px rgba(103, 178, 232, 0.4); /* Mandiri Sky Blue */
+  box-shadow: 0 6px 20px rgba(103, 178, 232, 0.4);
   transform: translateX(6px);
-  background: linear-gradient(
-    135deg,
-    #ffb700 0%,
-    #ea7200 100%
-  ); /* Mandiri Yellow ke Mandiri Orange */
-  color: #003d79; /* Mandiri Blue */
+  background: linear-gradient(135deg, #ffb700 0%, #ea7200 100%);
+  color: #003d79;
 }
 
-/* Nomor otomatis pada list */
+/* Nomor otomatis di depan item */
 .route-list-container li::before {
   content: counter(item);
   counter-increment: item;
   font-weight: 700;
-  color: #003d79; /* Mandiri Blue */
-  background: #ffb700; /* Mandiri Yellow */
+  color: #003d79;
+  background: #ffb700;
   padding: 0.4rem 0.8rem;
   font-size: 1.1rem;
   min-width: 30px;
   text-align: center;
-  box-shadow: 0 1px 3px rgba(234, 114, 0, 0.4); /* Mandiri Orange */
+  box-shadow: 0 1px 3px rgba(234, 114, 0, 0.4);
   flex-shrink: 0;
   user-select: none;
   list-style: square;
 }
 
-/* Tombol detail di kanan */
+/* Tombol detail */
 .route-list-container li .btn-detail {
   margin-left: auto;
-  background: #003d79; /* Mandiri Blue */
+  background: #003d79;
   color: white;
   border: none;
   padding: 0.3rem 0.8rem;
@@ -148,34 +174,19 @@ body {
 }
 
 .route-list-container li .btn-detail:hover {
-  background: #67b2e8; /* Mandiri Sky Blue */
+  background: #67b2e8;
 }
 
-/* Responsivitas untuk mobile agar tidak ancur */
-.mapview-container {
-  display: flex;
-  flex-direction: row;
-  height: 80vh;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.map-container {
-  width: 70% !important;
-  height: 100% !important;
-}
-
-.route-list-container {
-  width: 30% !important;
-  padding: 1rem;
-  background-color: #f8f8f8;
-  overflow-y: auto;
-  max-width: 400px;
-  height: 100% !important;
-}
-
-/* Ubah layout jadi kolom di layar kecil supaya mobile rapi */
+/* Responsivitas: ubah layout ke kolom di layar kecil */
 @media (max-width: 768px) {
+  .app-header {
+    font-size: 1.1rem;
+    padding: 0.6rem 1rem;
+    margin-bottom: 1rem;
+    line-height: 1.3;
+    justify-content: flex-start;
+  }
+
   .mapview-container {
     flex-direction: column;
     height: auto;
@@ -194,8 +205,9 @@ body {
   }
 }
 
+/* Button upload custom (jika perlu) */
 .custom-upload-button {
-  background-color: #003d79; /* Mandiri Blue */
+  background-color: #003d79;
   color: white;
   border: none;
   padding: 10px 16px;
@@ -206,9 +218,30 @@ body {
 }
 
 .custom-upload-button:hover {
-  background-color: #001f3d; /* dark Mandiri Blue */
+  background-color: #001f3d;
 }
 
 .upload-container {
   margin-bottom: 1rem;
+}
+
+.empty-message {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #003d79; /* Mandiri Blue */
+  background-color: #fffae6; /* Soft yellow background */
+  border: 2px dashed #ffb700; /* Mandiri Yellow dashed border */
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  text-align: center;
+  max-width: 400px;
+  margin: 2rem auto;
+  user-select: none;
+  box-shadow: 0 2px 8px rgba(255, 183, 0, 0.3);
+  transition: background-color 0.3s ease;
+}
+
+.empty-message:hover {
+  background-color: #fff3b0; /* sedikit lebih terang saat hover */
+  cursor: default;
 }

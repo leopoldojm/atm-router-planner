@@ -168,7 +168,13 @@ const MapView = () => {
 
     marker.togglePopup();
   };
+  const atmUploaderRef = useRef(null);
 
+  const handleUploadClick = () => {
+    if (atmUploaderRef.current) {
+      atmUploaderRef.current.click();
+    }
+  };
   return (
     <div
       className="mapview-container"
@@ -229,7 +235,13 @@ const MapView = () => {
         {loadingRoute ? (
           <p>Loading rute...</p>
         ) : routeOrder.length === 0 ? (
-          <p>Tidak ada rute ditemukan.</p>
+          <p
+            className="empty-message"
+            onClick={handleUploadClick}
+            style={{ cursor: "pointer" }}
+          >
+            Silakan upload file.
+          </p>
         ) : (
           <ol>
             {routeOrder.map((atm, routeIndex) => {
