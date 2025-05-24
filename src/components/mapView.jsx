@@ -21,6 +21,10 @@ const MapView = () => {
   const [routeOrder, setRouteOrder] = useState([]);
   const [atmListState, setAtmListState] = useState([]);
 
+  // ** Pisahkan marker user dan marker ATM **
+  const userMarkerRef = useRef(null);
+  const atmMarkersRef = useRef([]);
+
   const isFetchingRouteRef = useRef(false);
 
   // Ambil lokasi user sekali saat komponen mount
@@ -41,18 +45,32 @@ const MapView = () => {
     );
   }, []);
 
-  // Inisialisasi peta dan tambahkan marker
+  // Inisialisasi peta dan tambahkan marker (user + ATM)
   useEffect(() => {
     if (!userLocation || atmListState.length === 0) return;
 
     const mapInstance = initializeMap(mapRef.current, userLocation);
-    addMarkersToMap(mapInstance, userLocation, atmListState);
+
+    // Gunakan versi addMarkersToMap yang return { userMarker, atmMarkers }
+    const { userMarker, atmMarkers } = addMarkersToMap(
+      mapInstance,
+      userLocation,
+      atmListState,
+      userMarkerRef.current,
+      atmMarkersRef.current
+    );
+
+    userMarkerRef.current = userMarker;
+    atmMarkersRef.current = atmMarkers;
+
     setMap(mapInstance);
 
     return () => {
       if (mapInstance) {
         mapInstance.remove();
       }
+      userMarkerRef.current = null;
+      atmMarkersRef.current = [];
     };
   }, [userLocation, atmListState]);
 
@@ -123,6 +141,33 @@ const MapView = () => {
     draw();
   }, [map, userLocation, timeMatrix, userToATMTime, atmListState]);
 
+  const handleAtmClick = (routeIndex) => {
+    if (!map) return;
+
+    // ATM yang dipilih berdasarkan urutan routeOrder
+    const atmSelected = routeOrder[routeIndex];
+    if (!atmSelected) return;
+
+    // Cari index asli dari ATM tersebut di atmListState
+    const originalIndex = atmListState.findIndex(
+      (atm) => atm.id === atmSelected.id // pastikan id unik
+    );
+
+    if (originalIndex === -1) return;
+
+    const marker = atmMarkersRef.current[originalIndex];
+    if (!marker) return;
+
+    const lngLat = marker.getLngLat();
+
+    map.flyTo({
+      center: lngLat,
+      zoom: 15,
+      essential: true,
+    });
+    marker.togglePopup();
+  };
+
   return (
     <div
       className="mapview-container"
@@ -185,9 +230,13 @@ const MapView = () => {
           <p>Tidak ada rute ditemukan.</p>
         ) : (
           <ol>
-            {routeOrder.map((atm, index) => (
-              <li key={index}>
-                <strong>{atm.name}</strong>Sisa uang: Rp
+            {routeOrder.map((atm, routeIndex) => (
+              <li
+                key={routeIndex}
+                style={{ cursor: "pointer" }}
+                onClick={() => handleAtmClick(routeIndex)}
+              >
+                <strong>{atm.name}</strong> — Sisa uang: Rp
                 {(atm.remainingMoney || 0).toLocaleString()}
               </li>
             ))}

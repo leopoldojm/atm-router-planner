@@ -12,16 +12,29 @@ export const initializeMap = (container, userLocation) => {
   return mapInstance;
 };
 
-export const addMarkersToMap = (map, userLocation, atmList) => {
-  // Marker user
-  new tt.Marker({ color: "blue" })
+// Memisahkan marker user dan ATM
+export const addMarkersToMap = (
+  map,
+  userLocation,
+  atmList,
+  existingUserMarker = null,
+  existingAtmMarkers = []
+) => {
+  // Hapus marker lama
+  if (existingUserMarker) {
+    existingUserMarker.remove();
+  }
+  existingAtmMarkers.forEach((marker) => marker.remove());
+  existingAtmMarkers.length = 0;
+
+  // Tambah marker user (warna biru)
+  const userMarker = new tt.Marker({ color: "blue" })
     .setLngLat(userLocation)
-    .setPopup(new tt.Popup({ offset: 30 }).setText("Lokasi Kamu"))
     .addTo(map);
 
-  // Marker ATM
+  // Tambah marker ATM (warna merah)
   atmList.forEach((atm) => {
-    new tt.Marker({ color: "red" })
+    const atmMarker = new tt.Marker({ color: "red" })
       .setLngLat(atm.coords)
       .setPopup(
         new tt.Popup({ offset: 30 }).setHTML(
@@ -31,5 +44,8 @@ export const addMarkersToMap = (map, userLocation, atmList) => {
         )
       )
       .addTo(map);
+    existingAtmMarkers.push(atmMarker);
   });
+
+  return { userMarker, atmMarkers: existingAtmMarkers };
 };

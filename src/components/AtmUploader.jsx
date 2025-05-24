@@ -1,3 +1,4 @@
+// src/components/AtmUploader.js
 import React, { useRef, useState } from "react";
 import "../styles/main.css";
 import { parseAtmFile } from "../utils/fileParser";
@@ -22,7 +23,7 @@ const AtmUploader = ({ onDataUpload }) => {
     try {
       setLoading(true);
       const data = await parseAtmFile(file);
-      console.log("Parsed data:", data); // Debug info
+      console.log("Parsed data:", data);
       onDataUpload(data);
     } catch (error) {
       alert(
@@ -31,7 +32,7 @@ const AtmUploader = ({ onDataUpload }) => {
       );
       console.error(error);
     } finally {
-      e.target.value = null; // reset input supaya bisa upload file sama lagi
+      e.target.value = null; // reset supaya bisa upload ulang file sama lagi
       setLoading(false);
     }
   };
