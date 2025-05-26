@@ -21,7 +21,9 @@ export const aStarRoute = (
         currentIndex === -1
           ? userToATMTime?.[i] ?? 999999
           : timeMatrix?.[key] ?? 999999;
-      const money = atmList[i].remainingMoney ?? 0;
+
+      // Ganti remainingMoney ke remaining
+      const money = atmList[i].remaining ?? 0;
 
       if (time < minTime) minTime = time;
       if (money < minMoney) minMoney = money;
@@ -75,7 +77,9 @@ export const aStarRoute = (
         lastIndex === -1
           ? userToATMTime[i] ?? 999999
           : timeMatrix[key] ?? 999999;
-      const money = atmList[i].remainingMoney ?? 0;
+
+      // Ganti remainingMoney ke remaining
+      const money = atmList[i].remaining ?? 0;
 
       const newG =
         current.gCost +

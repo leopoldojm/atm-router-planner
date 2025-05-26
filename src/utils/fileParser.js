@@ -5,12 +5,13 @@ const requiredColumns = [
   "name",
   "longitude",
   "latitude",
-  "remainingMoney",
+  "remaining",
+  "denomination",
+  "beginingcash",
 ];
 
 export const parseAtmFile = async (file) => {
   return new Promise((resolve, reject) => {
-    // Validasi ekstensi file
     const allowedExtensions = [".csv", ".xls", ".xlsx"];
     if (
       !allowedExtensions.some((ext) => file.name.toLowerCase().endsWith(ext))
@@ -35,7 +36,6 @@ export const parseAtmFile = async (file) => {
           const text = event.target.result;
           formatted = parseCSV(text);
         } else {
-          // Excel parsing
           const data = new Uint8Array(event.target.result);
           const workbook = XLSX.read(data, { type: "array" });
           const sheet = workbook.Sheets[workbook.SheetNames[0]];
@@ -51,7 +51,6 @@ export const parseAtmFile = async (file) => {
             return;
           }
 
-          // Validasi kolom wajib ada di header Excel
           const sheetHeaders = Object.keys(json[0]).map((h) =>
             h.trim().toLowerCase()
           );
@@ -71,25 +70,27 @@ export const parseAtmFile = async (file) => {
 
           formatted = json
             .map((item, idx) => {
-              // Normalisasi key agar case-insensitive
               const row = {};
               Object.keys(item).forEach(
                 (k) => (row[k.trim().toLowerCase()] = item[k])
               );
 
-              // Parsing dan validasi tiap kolom
               const lng = parseFloat(
                 String(row["longitude"]).replace(",", ".")
               );
               const lat = parseFloat(String(row["latitude"]).replace(",", "."));
-              const remaining = parseInt(row["remainingmoney"]);
+              const remaining = parseInt(row["remaining"]);
+              const denomination = parseInt(row["denomination"]);
+              const beginingCash = parseInt(row["beginingcash"]);
 
               if (
                 !row["id"] ||
                 !row["name"] ||
                 isNaN(lng) ||
                 isNaN(lat) ||
-                isNaN(remaining)
+                isNaN(remaining) ||
+                isNaN(denomination) ||
+                isNaN(beginingCash)
               ) {
                 console.warn(
                   `Baris ${idx + 2} data tidak valid dan di-skip:`,
@@ -102,7 +103,9 @@ export const parseAtmFile = async (file) => {
                 id: row["id"],
                 name: row["name"],
                 coords: [lng, lat],
-                remainingMoney: remaining,
+                remaining,
+                denomination,
+                beginingCash,
               };
             })
             .filter((item) => item !== null);
@@ -112,6 +115,7 @@ export const parseAtmFile = async (file) => {
             return;
           }
         }
+
         resolve(formatted);
       } catch (err) {
         reject(new Error("Gagal memproses file: " + err.message));
@@ -131,17 +135,13 @@ export const parseAtmFile = async (file) => {
 
 function parseCSV(text) {
   const lines = text.trim().split("\n");
-
   if (lines.length < 2) {
     throw new Error("File CSV kosong atau tidak memiliki data.");
   }
 
-  // Coba deteksi delimiter (tab atau koma)
   const delimiter = lines[0].includes(",") ? "," : "\t";
-
   const headers = lines[0].split(delimiter).map((h) => h.trim());
 
-  // Validasi kolom wajib
   const missingColumns = requiredColumns.filter(
     (col) => !headers.map((h) => h.toLowerCase()).includes(col.toLowerCase())
   );
@@ -160,17 +160,20 @@ function parseCSV(text) {
         obj[header.toLowerCase()] = values[i];
       });
 
-      // Parsing kolom dengan validasi
       const lng = parseFloat(String(obj["longitude"]).replace(",", "."));
       const lat = parseFloat(String(obj["latitude"]).replace(",", "."));
-      const remaining = parseInt(obj["remainingmoney"]);
+      const remaining = parseInt(obj["remaining"]);
+      const denomination = parseInt(obj["denomination"]);
+      const beginingCash = parseInt(obj["beginingcash"]);
 
       if (
         !obj["id"] ||
         !obj["name"] ||
         isNaN(lng) ||
         isNaN(lat) ||
-        isNaN(remaining)
+        isNaN(remaining) ||
+        isNaN(denomination) ||
+        isNaN(beginingCash)
       ) {
         console.warn(`Baris ${index + 2} CSV tidak valid dan di-skip:`, obj);
         return null;
@@ -180,7 +183,9 @@ function parseCSV(text) {
         id: obj["id"],
         name: obj["name"],
         coords: [lng, lat],
-        remainingMoney: remaining,
+        remaining,
+        denomination,
+        beginingCash,
       };
     })
     .filter((item) => item !== null);

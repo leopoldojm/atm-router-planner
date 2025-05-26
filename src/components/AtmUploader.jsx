@@ -26,6 +26,8 @@ const AtmUploader = ({ onDataUpload }) => {
       console.log("Parsed data:", data);
       onDataUpload(data);
     } catch (error) {
+      console.log(error);
+
       alert(
         "Format file tidak valid atau terjadi kesalahan saat parsing.\n" +
           "Pastikan file dalam format CSV, XLSX, atau XLS yang benar."
@@ -48,9 +50,7 @@ const AtmUploader = ({ onDataUpload }) => {
         onClick={handleClick}
         disabled={loading}
       >
-        {loading
-          ? "Memproses file..."
-          : "📂 Upload ATM Data (CSV / XLSX / XLS)"}
+        {loading ? "Memproses file..." : "Silakan upload file."}
       </button>
       <input
         type="file"

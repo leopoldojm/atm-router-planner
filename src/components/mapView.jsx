@@ -8,44 +8,28 @@ import { buildTimeMatrixAsync } from "../utils/timeMatrixUtils";
 import { aStarRoute } from "../utils/aStarRoute";
 import { drawRoute } from "../utils/drawRoute";
 
-const alpha = 0.7; // bobot waktu tempuh
-const beta = 0.3; // bobot sisa uang ATM
-
 const MapView = () => {
   const mapRef = useRef(null);
-  const mapInstanceRef = useRef(null); // ref untuk menyimpan map instance
+  const mapInstanceRef = useRef(null);
   const [userLocation, setUserLocation] = useState(null);
   const [loadingRoute, setLoadingRoute] = useState(false);
   const [timeMatrix, setTimeMatrix] = useState(null);
   const [userToATMTime, setUserToATMTime] = useState(null);
   const [routeOrder, setRouteOrder] = useState([]);
   const [atmListState, setAtmListState] = useState([]);
+  const [alpha, setAlpha] = useState(0.7);
+  const [beta, setBeta] = useState(0.3);
 
-  // Marker refs untuk user dan ATM agar bisa update tanpa rerender
   const userMarkerRef = useRef(null);
   const atmMarkersRef = useRef([]);
-
-  // Ref flag untuk mencegah multiple route drawing bersamaan
   const isFetchingRouteRef = useRef(false);
 
-  // Set lokasi user sekali saat komponen mount (hardcoded)
   useEffect(() => {
     setUserLocation([106.966592, -6.257289]);
   }, []);
 
-  // Inisialisasi peta dan marker user + ATM
   useEffect(() => {
     if (!userLocation || mapInstanceRef.current) return;
-
-    // Jika map sudah ada, hapus dulu
-    if (mapInstanceRef.current) {
-      try {
-        mapInstanceRef.current.remove();
-      } catch {
-        // ignore error jika sudah di-remove
-      }
-      mapInstanceRef.current = null;
-    }
 
     const mapInstance = initializeMap(mapRef.current, userLocation);
 
@@ -59,16 +43,13 @@ const MapView = () => {
 
     userMarkerRef.current = userMarker;
     atmMarkersRef.current = atmMarkers;
-
     mapInstanceRef.current = mapInstance;
 
     return () => {
       if (mapInstanceRef.current) {
         try {
           mapInstanceRef.current.remove();
-        } catch {
-          // ignore jika sudah di-remove
-        }
+        } catch {}
         mapInstanceRef.current = null;
       }
       userMarkerRef.current = null;
@@ -76,7 +57,6 @@ const MapView = () => {
     };
   }, [userLocation, atmListState]);
 
-  // Bangun matriks waktu perjalanan secara async
   useEffect(() => {
     if (!userLocation || atmListState.length === 0) return;
 
@@ -102,7 +82,6 @@ const MapView = () => {
     buildMatrix();
   }, [userLocation, atmListState]);
 
-  // Gambar rute setelah data siap
   useEffect(() => {
     if (
       !mapInstanceRef.current ||
@@ -141,9 +120,8 @@ const MapView = () => {
     };
 
     draw();
-  }, [userLocation, timeMatrix, userToATMTime, atmListState]);
+  }, [userLocation, timeMatrix, userToATMTime, atmListState, alpha, beta]);
 
-  // Fungsi zoom ke marker ATM saat list diklik
   const handleAtmClick = (routeIndex) => {
     if (!mapInstanceRef.current) return;
 
@@ -168,13 +146,22 @@ const MapView = () => {
 
     marker.togglePopup();
   };
-  const atmUploaderRef = useRef(null);
 
-  const handleUploadClick = () => {
-    if (atmUploaderRef.current) {
-      atmUploaderRef.current.click();
+  const handleReset = () => {
+    // Bersihkan state dan peta
+    setAtmListState([]);
+    setRouteOrder([]);
+    setTimeMatrix(null);
+    setUserToATMTime(null);
+
+    if (atmMarkersRef.current.length > 0) {
+      atmMarkersRef.current.forEach((marker) => marker.remove());
     }
+
+    atmMarkersRef.current = [];
+    setLoadingRoute(false);
   };
+
   return (
     <div
       className="mapview-container"
@@ -223,67 +210,91 @@ const MapView = () => {
           overflowY: "auto",
         }}
       >
-        <AtmUploader
-          onDataUpload={(data) => {
-            setAtmListState(data);
-            setRouteOrder([]);
-            setTimeMatrix(null);
-            setUserToATMTime(null);
-          }}
-        />
-        <h3>Urutan Kunjungan ATM</h3>
+        <div style={{ marginBottom: "1rem" }}>
+          <button
+            style={{
+              backgroundColor: "#d9534f",
+              color: "white",
+              border: "none",
+              padding: "0.5rem 1rem",
+              borderRadius: "4px",
+              cursor: "pointer",
+              marginBottom: "4px",
+            }}
+            onClick={handleReset}
+          >
+            Reset
+          </button>
+          <br />
+          <div style={{ marginBottom: "1rem" }}>
+            <label style={{ display: "block" }}>
+              Bobot Waktu (α): <strong>{alpha}</strong>
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.1"
+              value={alpha}
+              onChange={(e) => setAlpha(parseFloat(e.target.value))}
+              style={{
+                width: "100%",
+                accentColor: "#0070ba", // Biru Mandiri
+              }}
+            />
+          </div>
+
+          <div style={{ marginBottom: "1rem" }}>
+            <label style={{ display: "block" }}>
+              Bobot Uang (β): <strong>{beta}</strong>
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.1"
+              value={beta}
+              onChange={(e) => setBeta(parseFloat(e.target.value))}
+              style={{
+                width: "100%",
+                accentColor: "#0070ba",
+              }}
+            />
+          </div>
+        </div>
+
+        <h3>List Kunjungan ATM</h3>
         {loadingRoute ? (
           <p>Loading rute...</p>
         ) : routeOrder.length === 0 ? (
-          <p
-            className="empty-message"
-            onClick={handleUploadClick}
-            style={{ cursor: "pointer" }}
-          >
-            Silakan upload file.
-          </p>
+          <AtmUploader
+            onDataUpload={(data) => {
+              setAtmListState(data);
+              setRouteOrder([]);
+              setTimeMatrix(null);
+              setUserToATMTime(null);
+            }}
+          />
         ) : (
           <ol>
             {routeOrder.map((atm, routeIndex) => {
-              let travelTimeSec = 0;
-
-              if (routeIndex === 0) {
-                const originalIndex = atmListState.findIndex(
-                  (a) => a.id === atm.id
-                );
-                if (originalIndex !== -1 && userToATMTime) {
-                  travelTimeSec = userToATMTime[originalIndex] || 0;
-                }
-              } else {
-                const prevATM = routeOrder[routeIndex - 1];
-                const fromIndex = atmListState.findIndex(
-                  (a) => a.id === prevATM.id
-                );
-                const toIndex = atmListState.findIndex((a) => a.id === atm.id);
-                if (
-                  fromIndex !== -1 &&
-                  toIndex !== -1 &&
-                  timeMatrix &&
-                  timeMatrix[fromIndex]
-                ) {
-                  travelTimeSec = timeMatrix[fromIndex][toIndex] || 0;
-                }
-              }
-
-              const travelTimeMin = Math.round(travelTimeSec / 60);
-
               return (
                 <li
                   key={routeIndex}
                   style={{ cursor: "pointer", marginBottom: "0.5rem" }}
                   onClick={() => handleAtmClick(routeIndex)}
                 >
-                  <strong>{atm.name}</strong> — Sisa uang: Rp{" "}
-                  {(atm.remainingMoney || 0).toLocaleString()}
-                  <br />
-                  <span style={{ fontSize: "0.9rem", color: "#555" }}>
-                    Estimasi waktu: {travelTimeMin} menit
-                  </span>
+                  <div>
+                    <strong>{atm.name}</strong>
+                  </div>
+                  <div>
+                    <div>
+                      Remaining:{" "}
+                      {atm.remaining != null
+                        ? atm.remaining.toLocaleString() + "%"
+                        : "0%"}
+                    </div>
+                  </div>
                 </li>
               );
             })}
