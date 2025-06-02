@@ -1,42 +1,45 @@
-import React from "react";
-import MapView from "./components/mapView";
-import "./styles/main.css";
-import logoMandiri from "./assets/logo.svg";
+import MapView from "./components/mapView"; // Import komponen MapView dari folder components
+import "./styles/main.css"; // Import file CSS utama untuk styling aplikasi
+import logoMandiri from "./assets/logo.svg"; // Import logo Mandiri dari folder assets
 
 function App() {
   return (
     <div className="app-container">
+      {/* Bagian header aplikasi */}
       <header
         className="app-header"
         style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "1rem",
-          padding: "0.5rem 1rem", // Hapus paddingLeft supaya gak ada jarak kiri
-          // paddingLeft dihilangkan supaya mentok kiri
-          width: "100%",
+          display: "flex", // Mengatur layout flexbox untuk header
+          alignItems: "center", // Vertikal align item di tengah
+          gap: "1rem", // Jarak antar elemen dalam header
+          padding: "0.5rem 1rem", // Padding atas-bawah dan kiri-kanan
+          width: "100%", // Lebar header penuh
         }}
       >
+        {/* Logo Mandiri */}
         <img
           src={logoMandiri}
-          alt="Mandiri ATM Logo"
+          alt="Mandiri ATM Logo" // Alt text untuk aksesibilitas
           style={{
-            width: 150,
-            height: 64,
-            objectFit: "contain",
-            marginLeft: 0, // hilangkan margin kiri supaya mentok kiri
+            width: 150, // Lebar logo 150px
+            height: 64, // Tinggi logo 64px
+            objectFit: "contain", // Menjaga proporsi logo
+            marginLeft: 0, // Margin kiri 0
           }}
         />
+        {/* Judul aplikasi */}
         <span style={{ fontSize: "1.5rem", fontWeight: "bold" }}>
           Cash Replenish Route Planner
         </span>
       </header>
 
+      {/* Bagian utama konten aplikasi */}
       <main>
+        {/* Komponen peta yang menampilkan MapView */}
         <MapView />
       </main>
     </div>
   );
 }
 
-export default App;
+export default App; // Export komponen App sebagai default export

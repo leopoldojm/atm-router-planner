@@ -1,4 +1,6 @@
-/* Reset dan global */
+/* =========================
+   RESET & GLOBAL STYLES
+========================= */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -13,44 +15,48 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Container utama aplikasi */
+/* =========================
+   MAIN APP CONTAINER
+========================= */
 .app-container {
   max-width: 1300px;
   margin: 0 auto;
   padding: 1rem;
 }
 
-/* Header aplikasi */
+/* =========================
+   APP HEADER
+========================= */
 .app-header {
   background: #003d79; /* Mandiri Blue */
   color: #ffb700; /* Mandiri Yellow */
-  padding: 0.5rem 1rem; /* style padding sesuai sebelumnya */
+  padding: 0.5rem 1rem;
   width: 100%;
-
   display: flex;
   align-items: center;
   gap: 1rem;
-  /* hilangkan justify-content:center supaya logo mentok kiri */
   user-select: none;
   border-radius: 12px;
   box-shadow: 0 3px 8px rgba(0, 61, 121, 0.7);
 }
 
-/* Logo Mandiri */
+/* Logo Mandiri di pojok kiri */
 .logo-mandiri {
   width: 150px;
   height: 64px;
   object-fit: contain;
-  margin-left: 0; /* supaya logo mentok kiri */
+  margin-left: 0;
 }
 
-/* Judul header */
+/* Judul di sebelah logo */
 .header-title {
   font-size: 1.5rem;
   font-weight: bold;
 }
 
-/* Kontainer utama map dan daftar rute */
+/* =========================
+   MAP & ROUTE LAYOUT
+========================= */
 .mapview-container {
   display: flex;
   flex-direction: row;
@@ -59,7 +65,7 @@ body {
   box-sizing: border-box;
 }
 
-/* Bagian peta */
+/* Area untuk peta */
 .map-container {
   width: 70% !important;
   height: 100% !important;
@@ -82,7 +88,9 @@ body {
   flex-direction: column;
 }
 
-/* Scrollbar styling */
+/* =========================
+   SCROLLBAR STYLING
+========================= */
 .route-list-container::-webkit-scrollbar {
   width: 8px;
 }
@@ -98,7 +106,10 @@ body {
   border: 2px solid #e0e4e8;
 }
 
-/* Judul sidebar */
+/* =========================
+   ROUTE LIST STYLING
+========================= */
+/* Judul di sidebar */
 .route-list-container h3 {
   font-weight: 700;
   font-size: 1.5rem;
@@ -110,7 +121,7 @@ body {
   text-transform: uppercase;
 }
 
-/* List nomor tanpa bullet */
+/* Ordered list tanpa bullet */
 .route-list-container ol {
   padding-left: 0;
   display: flex;
@@ -119,7 +130,7 @@ body {
   counter-reset: item;
 }
 
-/* Item list */
+/* Setiap item rute */
 .route-list-container li {
   background: linear-gradient(135deg, #ffffff 0%, #f2f7fc 100%);
   border-radius: 12px;
@@ -135,7 +146,7 @@ body {
   position: relative;
 }
 
-/* Hover item list */
+/* Hover efek untuk item */
 .route-list-container li:hover {
   box-shadow: 0 6px 20px rgba(103, 178, 232, 0.4);
   transform: translateX(6px);
@@ -143,7 +154,7 @@ body {
   color: #003d79;
 }
 
-/* Nomor otomatis di depan item */
+/* Nomor urut otomatis */
 .route-list-container li::before {
   content: counter(item);
   counter-increment: item;
@@ -160,7 +171,7 @@ body {
   list-style: square;
 }
 
-/* Tombol detail */
+/* Tombol detail di setiap list item */
 .route-list-container li .btn-detail {
   margin-left: auto;
   background: #003d79;
@@ -177,7 +188,9 @@ body {
   background: #67b2e8;
 }
 
-/* Responsivitas: ubah layout ke kolom di layar kecil */
+/* =========================
+   RESPONSIVE
+========================= */
 @media (max-width: 768px) {
   .app-header {
     font-size: 1rem;
@@ -205,7 +218,9 @@ body {
   }
 }
 
-/* Button upload custom dengan gaya seperti empty-message */
+/* =========================
+   CUSTOM UPLOAD BUTTON
+========================= */
 .custom-upload-button {
   font-size: 1.1rem;
   font-weight: 600;
@@ -223,10 +238,10 @@ body {
 }
 
 .custom-upload-button:hover {
-  background-color: #fff3b0; /* Hover lebih terang */
+  background-color: #fff3b0;
 }
 
-/* Container upload dengan margin */
+/* Container untuk tombol upload */
 .upload-container {
   margin-bottom: 2rem;
   display: flex;
