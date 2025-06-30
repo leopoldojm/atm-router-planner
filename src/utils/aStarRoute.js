@@ -1,13 +1,10 @@
-const alpha = 0.7; // Bobot untuk waktu (travel time)
-const beta = 0.3; // Bobot untuk uang (remaining money)
-
 // Fungsi utama A* untuk menentukan rute ATM optimal
 export const aStarRoute = (
   atmList, // Daftar ATM yang tersedia
   timeMatrix, // Matriks waktu antar ATM
   userToATMTime, // Waktu dari user ke masing-masing ATM
-  alphaParam = alpha, // Bobot waktu (default: 0.7)
-  betaParam = beta // Bobot uang (default: 0.3)
+  alphaParam = 0.7, // Bobot waktu (default: 0.7)
+  betaParam = 0.3 // Bobot uang (default: 0.3)
 ) => {
   if (!timeMatrix || !userToATMTime) return []; // Jika data waktu tidak tersedia, return kosong
 

@@ -28,8 +28,6 @@ const MapView = () => {
   const [userToATMTime, setUserToATMTime] = useState(null); // Waktu dari user ke masing-masing ATM
   const [routeOrder, setRouteOrder] = useState([]); // Urutan kunjungan ATM
   const [atmListState, setAtmListState] = useState([]); // Daftar ATM yang diunggah
-  const [alpha, setAlpha] = useState(0.7); // Bobot waktu
-  const [beta, setBeta] = useState(0.3); // Bobot uang
 
   const userMarkerRef = useRef(null); // Marker untuk user
   const atmMarkersRef = useRef([]); // Marker untuk ATM
@@ -114,13 +112,7 @@ const MapView = () => {
       setLoadingRoute(true);
 
       try {
-        const route = aStarRoute(
-          atmListState,
-          timeMatrix,
-          userToATMTime,
-          alpha,
-          beta
-        );
+        const route = aStarRoute(atmListState, timeMatrix, userToATMTime);
 
         setRouteOrder(route);
 
@@ -136,7 +128,7 @@ const MapView = () => {
     };
 
     draw();
-  }, [userLocation, timeMatrix, userToATMTime, atmListState, alpha, beta]);
+  }, [userLocation, timeMatrix, userToATMTime, atmListState]);
 
   // Handler saat salah satu ATM diklik dari list rute
   const handleAtmClick = (routeIndex) => {
@@ -244,44 +236,6 @@ const MapView = () => {
           >
             Reset
           </button>
-
-          {/* Slider Alpha */}
-          <div style={{ marginBottom: "1rem" }}>
-            <label style={{ display: "block" }}>
-              Bobot Waktu (α): <strong>{alpha}</strong>
-            </label>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.1"
-              value={alpha}
-              onChange={(e) => setAlpha(parseFloat(e.target.value))}
-              style={{
-                width: "100%",
-                accentColor: "#0070ba",
-              }}
-            />
-          </div>
-
-          {/* Slider Beta */}
-          <div style={{ marginBottom: "1rem" }}>
-            <label style={{ display: "block" }}>
-              Bobot Uang (β): <strong>{beta}</strong>
-            </label>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.1"
-              value={beta}
-              onChange={(e) => setBeta(parseFloat(e.target.value))}
-              style={{
-                width: "100%",
-                accentColor: "#0070ba",
-              }}
-            />
-          </div>
         </div>
 
         {/* Daftar Rute atau Upload ATM */}

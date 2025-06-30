@@ -10,6 +10,12 @@ if (!TOMTOM_API_KEY) {
   );
 }
 
+// Counter log untuk tracking jumlah pemanggilan fungsi
+let travelTimeCounter = 0;
+let trafficFlowCounter = 0;
+let matrixTravelTimeCounter = 0;
+let multiWaypointCounter = 0;
+
 /**
  * Mendapatkan waktu tempuh (dalam detik) antara dua koordinat (start -> end)
  * Menggunakan endpoint Routing TomTom
@@ -18,19 +24,20 @@ if (!TOMTOM_API_KEY) {
  * @returns {Promise<number>} waktu tempuh dalam detik
  */
 export const getTravelTimeInSeconds = async (start, end) => {
+  travelTimeCounter++;
+  console.log(`getTravelTimeInSeconds called: ${travelTimeCounter}x`);
+
   if (!TOMTOM_API_KEY) throw new Error("TOMTOM_API_KEY is not defined");
 
   const [startLng, startLat] = start;
   const [endLng, endLat] = end;
 
-  // Format URL dengan koordinat awal dan akhir
   const url = `https://api.tomtom.com/routing/1/calculateRoute/${startLat},${startLng}:${endLat},${endLng}/json?key=${TOMTOM_API_KEY}&travelMode=car&traffic=true`;
 
   try {
     const { data } = await axios.get(url);
     const route = data.routes?.[0];
 
-    // Jika rute ditemukan, kembalikan waktu tempuh dalam detik
     if (route) {
       return route.summary.travelTimeInSeconds;
     }
@@ -50,6 +57,9 @@ export const getTravelTimeInSeconds = async (start, end) => {
  * @returns {Promise<Object|null>} Objek data traffic atau null jika gagal
  */
 export const getTrafficFlow = async (lat, lon) => {
+  trafficFlowCounter++;
+  console.log(`getTrafficFlow called: ${trafficFlowCounter}x`);
+
   if (!TOMTOM_API_KEY) {
     console.warn("TOMTOM_API_KEY is not set, cannot fetch traffic flow");
     return null;
@@ -61,7 +71,7 @@ export const getTrafficFlow = async (lat, lon) => {
   try {
     const { data } = await axios.get(url, {
       params: {
-        point: `${lat},${lon}`, // Format koordinat
+        point: `${lat},${lon}`,
         key: TOMTOM_API_KEY,
       },
     });
@@ -79,11 +89,13 @@ export const getTrafficFlow = async (lat, lon) => {
  * @returns {Promise<Array<Array<number>>|null>} Matriks waktu tempuh antar titik (dalam detik)
  */
 export const getMatrixTravelTime = async (locations) => {
+  matrixTravelTimeCounter++;
+  console.log(`getMatrixTravelTime called: ${matrixTravelTimeCounter}x`);
+
   if (!TOMTOM_API_KEY) throw new Error("TOMTOM_API_KEY is not defined");
 
   const url = `https://api.tomtom.com/routing/1/matrix/driving/json?key=${TOMTOM_API_KEY}`;
 
-  // Format body permintaan dengan asal dan tujuan dari semua titik
   const body = {
     origins: locations.map(([lng, lat]) => ({ lat, lon: lng })),
     destinations: locations.map(([lng, lat]) => ({ lat, lon: lng })),
@@ -91,12 +103,10 @@ export const getMatrixTravelTime = async (locations) => {
 
   try {
     const { data } = await axios.post(url, body);
-
-    // Tangani kemungkinan struktur respons berbeda
     return (
-      data?.matrix?.[0]?.response?.matrix?.times || // format lama
-      data?.data?.times || // format alternatif
-      data.times // default
+      data?.matrix?.[0]?.response?.matrix?.times ||
+      data?.data?.times ||
+      data.times
     );
   } catch (error) {
     console.error("Error fetching matrix travel times:", error);
@@ -111,11 +121,13 @@ export const getMatrixTravelTime = async (locations) => {
  * @returns {Promise<Array<[number, number]>>} Array polyline [lng, lat]
  */
 export const getMultiWaypointRoute = async (points) => {
+  multiWaypointCounter++;
+  console.log(`getMultiWaypointRoute called: ${multiWaypointCounter}x`);
+
   if (!TOMTOM_API_KEY) throw new Error("TOMTOM_API_KEY is not defined");
   if (!points || points.length < 2)
     throw new Error("Minimal 2 titik diperlukan");
 
-  // Format koordinat dalam string sesuai format TomTom
   const coordsStr = points.map(([lng, lat]) => `${lat},${lng}`).join(":");
   const url = `https://api.tomtom.com/routing/1/calculateRoute/${coordsStr}/json?key=${TOMTOM_API_KEY}&travelMode=car&traffic=false`;
 
@@ -125,7 +137,6 @@ export const getMultiWaypointRoute = async (points) => {
 
     if (!legs) throw new Error("No route found");
 
-    // Ambil semua titik dari masing-masing leg dan bentuk polyline
     const polyline = legs.flatMap((leg) =>
       leg.points.map(({ longitude, latitude }) => [longitude, latitude])
     );
