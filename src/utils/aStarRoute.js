@@ -3,8 +3,8 @@ export const aStarRoute = (
   atmList, // Daftar ATM yang tersedia
   timeMatrix, // Matriks waktu antar ATM
   userToATMTime, // Waktu dari user ke masing-masing ATM
-  alphaParam = 0.7, // Bobot waktu (default: 0.7)
-  betaParam = 0.3 // Bobot uang (default: 0.3)
+  alphaParam = 0.3, // Bobot waktu (default: 0.7)
+  betaParam = 0.7 // Bobot uang (default: 0.3)
 ) => {
   if (!timeMatrix || !userToATMTime) return []; // Jika data waktu tidak tersedia, return kosong
 
